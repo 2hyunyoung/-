@@ -42,7 +42,7 @@
     .card:hover { transform:translateY(-3px); box-shadow:var(--shadow); }.card.hidden { display:none; }
     .card-top { display:flex; justify-content:space-between; align-items:flex-start; }.food-emoji { width:62px; height:62px; display:grid; place-items:center; border-radius:17px; font-size:36px; background:#fff4e9; }.heart { background:transparent; color:#c3cad6; font-size:22px; padding:0 2px; line-height:1; }.heart.active { color:var(--orange); }
     .card h3 { font-size:17px; margin:16px 0 6px; letter-spacing:-.05em; }.desc { color:var(--muted); font-size:12px; margin:0 0 16px; }
-    .meta { display:flex; gap:8px; margin-top:auto; color:#9099a9; font-size:11px; }.tag { background:#f5f7fa; padding:5px 8px; border-radius:6px; }.price { margin-left:auto; color:var(--navy); font-weight:700; }
+    .meta { display:flex; gap:8px; margin-top:auto; color:#9099a9; font-size:11px; }.tag { background:#f5f7fa; padding:5px 8px; border-radius:6px; }.save-count { color:#f26f4d; font-weight:700; }.price { margin-left:auto; color:var(--navy); font-weight:700; }
     aside { display:flex; flex-direction:column; gap:17px; }.pick-box { padding:25px; border-radius:21px; background:var(--navy); color:#fff; box-shadow:0 15px 35px rgba(23,35,60,.18); }.pick-box small { color:#aeb9ce; font-size:12px; }.pick-box h3 { font-size:21px; margin:8px 0; letter-spacing:-.06em; }.pick-box p { color:#c8cfdd; font-size:12px; line-height:1.6; margin:0 0 20px; }.pick-btn { width:100%; padding:13px; border-radius:11px; background:var(--orange); color:#fff; font-weight:700; }.pick-btn:hover { background:var(--orange-dark); }
     .tip { padding:21px; border:1px solid var(--line); background:#fff; border-radius:18px; }.tip-label { color:var(--orange); font-size:11px; font-weight:800; }.tip h4 { margin:8px 0 5px; font-size:15px; letter-spacing:-.04em; }.tip p { margin:0; font-size:12px; color:var(--muted); line-height:1.55; }
     .empty { grid-column:1/-1; text-align:center; padding:45px 20px; color:var(--muted); background:#fff; border:1px dashed #dce2eb; border-radius:18px; }
@@ -76,7 +76,11 @@
     </main>
   </div>
   <div class="toast" id="toast"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
+    const SUPABASE_URL = 'https://fzhimfznjjxxhkaodvwm.supabase.co';
+    const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_aC7oFiwv6nQIqnvuFtay6A_DODvuNYh';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
     const menus = [
       {name:'제육볶음', cat:'한식', mood:['comfort','spicy'], emoji:'🥘', desc:'매콤달콤한 국민 밥도둑', price:'₩9,000', time:'15분'},
       {name:'돈카츠 정식', cat:'일식', mood:['comfort'], emoji:'🍱', desc:'바삭함이 필요한 날', price:'₩11,000', time:'20분'},
@@ -89,13 +93,41 @@
       {name:'비빔밥', cat:'한식', mood:['light','comfort'], emoji:'🍚', desc:'알록달록 영양 가득', price:'₩9,000', time:'15분'}
     ];
     const saved = new Set(JSON.parse(localStorage.getItem('lunchFavorites') || '[]'));
+    const favoriteCounts = {};
+    const pendingFavorites = new Set();
     let selectedCat='all', selectedMood='all', favoritesOnly=false;
     const grid=document.getElementById('menuGrid'), count=document.getElementById('menuCount'), favCount=document.getElementById('favCount');
     function render(){
       const visible=menus.filter(m=>(selectedCat==='all'||m.cat===selectedCat)&&(selectedMood==='all'||m.mood.includes(selectedMood))&&(!favoritesOnly||saved.has(m.name)));
       count.textContent=visible.length; favCount.textContent=saved.size;
-      grid.innerHTML=visible.length ? visible.map(m=>`<article class="card"><div class="card-top"><div class="food-emoji">${m.emoji}</div><button class="heart ${saved.has(m.name)?'active':''}" aria-label="${m.name} 즐겨찾기" data-fav="${m.name}">${saved.has(m.name)?'♥':'♡'}</button></div><h3>${m.name}</h3><p class="desc">${m.desc}</p><div class="meta"><span class="tag">${m.cat}</span><span class="tag">⏱ ${m.time}</span><span class="price">${m.price}</span></div></article>`).join('') : '<div class="empty">아직 찜한 메뉴가 없어요.<br>마음에 드는 메뉴의 하트를 눌러보세요!</div>';
-      document.querySelectorAll('[data-fav]').forEach(b=>b.addEventListener('click',()=>{const n=b.dataset.fav;saved.has(n)?saved.delete(n):saved.add(n);localStorage.setItem('lunchFavorites',JSON.stringify([...saved]));render();showToast(saved.has(n)?`${n}을(를) 찜했어요 ♥`:`${n}을(를) 찜 목록에서 뺐어요`);}));
+      grid.innerHTML=visible.length ? visible.map(m=>`<article class="card"><div class="card-top"><div class="food-emoji">${m.emoji}</div><button class="heart ${saved.has(m.name)?'active':''}" aria-label="${m.name} 즐겨찾기" data-fav="${m.name}" ${pendingFavorites.has(m.name)?'disabled':''}>${saved.has(m.name)?'♥':'♡'}</button></div><h3>${m.name}</h3><p class="desc">${m.desc}</p><div class="meta"><span class="tag">${m.cat}</span><span class="tag">⏱ ${m.time}</span><span class="save-count">♡ ${favoriteCounts[m.name] || 0} 저장</span><span class="price">${m.price}</span></div></article>`).join('') : '<div class="empty">아직 찜한 메뉴가 없어요.<br>마음에 드는 메뉴의 하트를 눌러보세요!</div>';
+      document.querySelectorAll('[data-fav]').forEach(b=>b.addEventListener('click',()=>toggleFavorite(b.dataset.fav)));
+    }
+    async function loadFavoriteCounts(){
+      const {data,error}=await supabaseClient.from('menu_favorite_counts').select('menu_name,favorite_count');
+      if(error){console.warn('Supabase 저장 수 조회 실패:',error.message);return;}
+      data.forEach(row=>favoriteCounts[row.menu_name]=row.favorite_count);
+      render();
+    }
+    async function toggleFavorite(name){
+      if(pendingFavorites.has(name)) return;
+      pendingFavorites.add(name);
+      const adding=!saved.has(name);
+      adding?saved.add(name):saved.delete(name);
+      render();
+      const {data,error}=await supabaseClient.rpc('toggle_menu_favorite',{p_menu_name:name,p_delta:adding?1:-1});
+      pendingFavorites.delete(name);
+      if(error){
+        adding?saved.delete(name):saved.add(name);
+        render();
+        showToast('저장에 실패했어요. 잠시 후 다시 눌러주세요.');
+        console.error('Supabase 저장 실패:',error.message);
+        return;
+      }
+      favoriteCounts[name]=data;
+      localStorage.setItem('lunchFavorites',JSON.stringify([...saved]));
+      render();
+      showToast(adding?`${name}을(를) 저장했어요 ♥`:`${name}을(를) 저장 목록에서 뺐어요`);
     }
     document.querySelectorAll('.category').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.category').forEach(x=>x.classList.remove('active'));b.classList.add('active');selectedCat=b.dataset.category;favoritesOnly=false;render();}));
     document.querySelectorAll('.mood').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.mood').forEach(x=>x.classList.remove('active'));b.classList.add('active');selectedMood=b.dataset.mood;favoritesOnly=false;render();}));
@@ -103,6 +135,7 @@
     document.getElementById('pickBtn').addEventListener('click',()=>{const candidates=menus.filter(m=>(selectedCat==='all'||m.cat===selectedCat)&&(selectedMood==='all'||m.mood.includes(selectedMood)));const pick=candidates[Math.floor(Math.random()*candidates.length)];showToast(`오늘의 메뉴는 ${pick.name}! ${pick.emoji}`);});
     function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>t.classList.remove('show'),2200)}
     render();
+    loadFavoriteCounts();
   </script>
 </body>
 </html>
