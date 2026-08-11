@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>오늘 뭐 먹지? — 직장인 점심 메뉴 추천</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --navy:#17233c; --muted:#7c879b; --line:#e8ecf2; --bg:#f7f9fc; --orange:#f26f4d; --orange-dark:#df5736; --yellow:#ffc857; --white:#fff; --shadow:0 16px 45px rgba(26,42,72,.08); }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--navy); background:var(--bg); font-family:'DM Sans','Noto Sans KR',sans-serif; }
+    button { font:inherit; cursor:pointer; border:0; }
+    .shell { max-width:1180px; margin:auto; padding:0 28px 70px; }
+    header { height:80px; display:flex; align-items:center; justify-content:space-between; }
+    .brand { display:flex; align-items:center; gap:11px; font-weight:800; font-size:19px; letter-spacing:-.04em; }
+    .brand-mark { width:34px; height:34px; border-radius:11px; display:grid; place-items:center; background:var(--orange); color:#fff; font-size:18px; transform:rotate(-8deg); }
+    nav { display:flex; gap:28px; align-items:center; font-size:14px; color:var(--muted); }
+    nav a { color:inherit; text-decoration:none; }
+    nav a:first-child { color:var(--navy); font-weight:700; }
+    .fav-link { padding:10px 14px; border:1px solid var(--line); border-radius:12px; background:#fff; color:var(--navy); font-weight:600; }
+    .hero { display:grid; grid-template-columns:1.15fr .85fr; align-items:center; min-height:335px; padding:32px 48px; border-radius:26px; overflow:hidden; background:linear-gradient(120deg,#fff2e7 0%,#fff8f2 55%,#ffecd2 100%); position:relative; }
+    .hero:after { content:''; width:320px; height:320px; border-radius:50%; background:rgba(255,200,87,.25); position:absolute; right:-80px; top:-100px; }
+    .eyebrow { color:var(--orange); font-size:13px; font-weight:800; letter-spacing:.08em; margin-bottom:14px; }
+    h1 { font-size:46px; line-height:1.16; letter-spacing:-.07em; margin:0 0 15px; }
+    h1 span { color:var(--orange); }
+    .hero p { margin:0; font-size:16px; color:#6f7787; line-height:1.7; }
+    .hero-art { justify-self:end; z-index:1; position:relative; width:290px; height:230px; }
+    .plate { position:absolute; width:190px; height:190px; right:36px; top:18px; border-radius:50%; background:#fff; box-shadow:0 20px 25px rgba(180,116,44,.15); display:grid; place-items:center; font-size:105px; }
+    .bubble { position:absolute; padding:11px 15px; border-radius:15px; background:#fff; box-shadow:0 8px 22px rgba(80,55,23,.1); font-weight:700; font-size:14px; }
+    .bubble.one { right:0; top:5px; transform:rotate(5deg); }.bubble.two { left:7px; bottom:12px; transform:rotate(-6deg); }
+    .content { display:grid; grid-template-columns:1fr 300px; gap:35px; margin-top:42px; }
+    .section-head { display:flex; justify-content:space-between; align-items:end; margin-bottom:17px; }
+    h2 { margin:0; font-size:23px; letter-spacing:-.06em; }.section-head p { margin:0; color:var(--muted); font-size:13px; }
+    .moods, .categories { display:flex; gap:9px; flex-wrap:wrap; margin-bottom:18px; }
+    .pill { color:#7c879b; background:#fff; border:1px solid var(--line); border-radius:999px; padding:10px 15px; font-size:13px; transition:.2s; }
+    .pill:hover,.pill.active { color:#fff; border-color:var(--navy); background:var(--navy); }
+    .mood.active { background:#fff0e9; color:var(--orange); border-color:#ffd0c2; }
+    .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:15px; }
+    .card { background:#fff; border:1px solid #eef1f5; border-radius:18px; padding:17px; min-height:220px; box-shadow:0 3px 12px rgba(28,44,77,.025); transition:.2s; position:relative; display:flex; flex-direction:column; }
+    .card:hover { transform:translateY(-3px); box-shadow:var(--shadow); }.card.hidden { display:none; }
+    .card-top { display:flex; justify-content:space-between; align-items:flex-start; }.food-emoji { width:62px; height:62px; display:grid; place-items:center; border-radius:17px; font-size:36px; background:#fff4e9; }.heart { background:transparent; color:#c3cad6; font-size:22px; padding:0 2px; line-height:1; }.heart.active { color:var(--orange); }
+    .card h3 { font-size:17px; margin:16px 0 6px; letter-spacing:-.05em; }.desc { color:var(--muted); font-size:12px; margin:0 0 16px; }
+    .meta { display:flex; gap:8px; margin-top:auto; color:#9099a9; font-size:11px; }.tag { background:#f5f7fa; padding:5px 8px; border-radius:6px; }.price { margin-left:auto; color:var(--navy); font-weight:700; }
+    aside { display:flex; flex-direction:column; gap:17px; }.pick-box { padding:25px; border-radius:21px; background:var(--navy); color:#fff; box-shadow:0 15px 35px rgba(23,35,60,.18); }.pick-box small { color:#aeb9ce; font-size:12px; }.pick-box h3 { font-size:21px; margin:8px 0; letter-spacing:-.06em; }.pick-box p { color:#c8cfdd; font-size:12px; line-height:1.6; margin:0 0 20px; }.pick-btn { width:100%; padding:13px; border-radius:11px; background:var(--orange); color:#fff; font-weight:700; }.pick-btn:hover { background:var(--orange-dark); }
+    .tip { padding:21px; border:1px solid var(--line); background:#fff; border-radius:18px; }.tip-label { color:var(--orange); font-size:11px; font-weight:800; }.tip h4 { margin:8px 0 5px; font-size:15px; letter-spacing:-.04em; }.tip p { margin:0; font-size:12px; color:var(--muted); line-height:1.55; }
+    .empty { grid-column:1/-1; text-align:center; padding:45px 20px; color:var(--muted); background:#fff; border:1px dashed #dce2eb; border-radius:18px; }
+    .toast { position:fixed; left:50%; bottom:30px; transform:translate(-50%,20px); opacity:0; background:var(--navy); color:#fff; padding:13px 20px; border-radius:999px; font-size:13px; pointer-events:none; transition:.3s; }.toast.show { opacity:1; transform:translate(-50%,0); }
+    @media(max-width:820px){ .hero { grid-template-columns:1fr; padding:32px; }.hero-art { display:none; }.content { grid-template-columns:1fr; }.grid { grid-template-columns:repeat(2,1fr); } aside { display:grid; grid-template-columns:1fr 1fr; } }
+    @media(max-width:540px){ .shell { padding:0 16px 50px; } header { height:68px; } nav a:not(.fav-link) { display:none; } .hero { min-height:300px; padding:27px 24px; border-radius:21px; } h1 { font-size:37px; }.content { margin-top:31px; }.grid { grid-template-columns:1fr 1fr; gap:10px; }.card { padding:13px; min-height:205px; }.food-emoji { width:53px;height:53px;font-size:29px; }.card h3 { font-size:15px; }.desc { font-size:11px; }.meta { font-size:10px; gap:4px; }.price { display:none; } aside { display:flex; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="brand"><div class="brand-mark">🍴</div> 오늘 뭐 먹지?</div>
+      <nav><a href="#menu">메뉴 둘러보기</a><a href="#tip">오늘의 팁</a><button class="fav-link" id="showFavorites">♡ 찜한 메뉴 <span id="favCount">0</span></button></nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div><div class="eyebrow">LUNCH IS SERVED</div><h1>오늘 점심,<br><span>고민은 여기까지.</span></h1><p>바쁜 직장인을 위한 점심 메뉴 큐레이션.<br>지금 내 기분에 딱 맞는 메뉴를 찾아보세요.</p></div>
+        <div class="hero-art"><div class="bubble one">오늘은 든든하게!</div><div class="plate">🍛</div><div class="bubble two">맛있는 점심시간 🍚</div></div>
+      </section>
+
+      <section class="content" id="menu">
+        <div>
+          <div class="section-head"><div><h2>오늘의 메뉴</h2><p>총 <b id="menuCount">9</b>개의 메뉴가 있어요</p></div></div>
+          <div class="moods" aria-label="기분 선택"><button class="pill mood active" data-mood="all">✨ 아무거나</button><button class="pill mood" data-mood="comfort">😌 든든하게</button><button class="pill mood" data-mood="light">🌿 가볍게</button><button class="pill mood" data-mood="spicy">🌶️ 매콤하게</button></div>
+          <div class="categories"><button class="pill category active" data-category="all">전체</button><button class="pill category" data-category="한식">한식</button><button class="pill category" data-category="일식">일식</button><button class="pill category" data-category="중식">중식</button><button class="pill category" data-category="분식">분식</button><button class="pill category" data-category="샐러드">샐러드</button></div>
+          <div class="grid" id="menuGrid"></div>
+        </div>
+        <aside><div class="pick-box"><small>DECISION MAKER</small><h3>아직도 못 골랐나요?</h3><p>버튼을 누르면 오늘의 점심을<br>행운에 맡겨볼게요.</p><button class="pick-btn" id="pickBtn">🎲 랜덤으로 골라줘</button></div><div class="tip" id="tip"><div class="tip-label">TODAY'S TIP</div><h4>점심은 20분 전에 예약하기</h4><p>12시가 되면 인기 맛집은 붐벼요. 미리 메뉴를 정하면 여유로운 점심을 즐길 수 있어요.</p></div></aside>
+      </section>
+    </main>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script>
+    const menus = [
+      {name:'제육볶음', cat:'한식', mood:['comfort','spicy'], emoji:'🥘', desc:'매콤달콤한 국민 밥도둑', price:'₩9,000', time:'15분'},
+      {name:'돈카츠 정식', cat:'일식', mood:['comfort'], emoji:'🍱', desc:'바삭함이 필요한 날', price:'₩11,000', time:'20분'},
+      {name:'마라탕', cat:'중식', mood:['spicy'], emoji:'🍜', desc:'스트레스까지 얼얼하게', price:'₩12,000', time:'15분'},
+      {name:'치킨 샐러드', cat:'샐러드', mood:['light'], emoji:'🥗', desc:'오후를 가볍게 시작하는 법', price:'₩10,500', time:'10분'},
+      {name:'김치찌개', cat:'한식', mood:['comfort','spicy'], emoji:'🍲', desc:'따뜻하고 든든한 한 끼', price:'₩8,000', time:'10분'},
+      {name:'냉모밀', cat:'일식', mood:['light'], emoji:'🍥', desc:'시원하게 리프레시', price:'₩9,500', time:'15분'},
+      {name:'새우볶음밥', cat:'중식', mood:['comfort'], emoji:'🍤', desc:'실패 없는 클래식 메뉴', price:'₩9,000', time:'15분'},
+      {name:'떡볶이 세트', cat:'분식', mood:['spicy'], emoji:'🌶️', desc:'동료와 나눠 먹기 좋아요', price:'₩8,500', time:'10분'},
+      {name:'비빔밥', cat:'한식', mood:['light','comfort'], emoji:'🍚', desc:'알록달록 영양 가득', price:'₩9,000', time:'15분'}
+    ];
+    const saved = new Set(JSON.parse(localStorage.getItem('lunchFavorites') || '[]'));
+    let selectedCat='all', selectedMood='all', favoritesOnly=false;
+    const grid=document.getElementById('menuGrid'), count=document.getElementById('menuCount'), favCount=document.getElementById('favCount');
+    function render(){
+      const visible=menus.filter(m=>(selectedCat==='all'||m.cat===selectedCat)&&(selectedMood==='all'||m.mood.includes(selectedMood))&&(!favoritesOnly||saved.has(m.name)));
+      count.textContent=visible.length; favCount.textContent=saved.size;
+      grid.innerHTML=visible.length ? visible.map(m=>`<article class="card"><div class="card-top"><div class="food-emoji">${m.emoji}</div><button class="heart ${saved.has(m.name)?'active':''}" aria-label="${m.name} 즐겨찾기" data-fav="${m.name}">${saved.has(m.name)?'♥':'♡'}</button></div><h3>${m.name}</h3><p class="desc">${m.desc}</p><div class="meta"><span class="tag">${m.cat}</span><span class="tag">⏱ ${m.time}</span><span class="price">${m.price}</span></div></article>`).join('') : '<div class="empty">아직 찜한 메뉴가 없어요.<br>마음에 드는 메뉴의 하트를 눌러보세요!</div>';
+      document.querySelectorAll('[data-fav]').forEach(b=>b.addEventListener('click',()=>{const n=b.dataset.fav;saved.has(n)?saved.delete(n):saved.add(n);localStorage.setItem('lunchFavorites',JSON.stringify([...saved]));render();showToast(saved.has(n)?`${n}을(를) 찜했어요 ♥`:`${n}을(를) 찜 목록에서 뺐어요`);}));
+    }
+    document.querySelectorAll('.category').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.category').forEach(x=>x.classList.remove('active'));b.classList.add('active');selectedCat=b.dataset.category;favoritesOnly=false;render();}));
+    document.querySelectorAll('.mood').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.mood').forEach(x=>x.classList.remove('active'));b.classList.add('active');selectedMood=b.dataset.mood;favoritesOnly=false;render();}));
+    document.getElementById('showFavorites').addEventListener('click',()=>{favoritesOnly=!favoritesOnly;selectedCat='all';selectedMood='all';document.querySelectorAll('.pill').forEach(x=>x.classList.remove('active'));document.querySelector('[data-category="all"]').classList.add('active');document.querySelector('[data-mood="all"]').classList.add('active');render();showToast(favoritesOnly?'찜한 메뉴만 보여드릴게요':'전체 메뉴를 보여드릴게요');});
+    document.getElementById('pickBtn').addEventListener('click',()=>{const candidates=menus.filter(m=>(selectedCat==='all'||m.cat===selectedCat)&&(selectedMood==='all'||m.mood.includes(selectedMood)));const pick=candidates[Math.floor(Math.random()*candidates.length)];showToast(`오늘의 메뉴는 ${pick.name}! ${pick.emoji}`);});
+    function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>t.classList.remove('show'),2200)}
+    render();
+  </script>
+</body>
+</html>
